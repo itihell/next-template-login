@@ -1,5 +1,5 @@
 {
-  "name": "next-frontend",
+  "name": "the-friends",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -46,6 +46,7 @@
     "input-otp": "^1.2.5",
     "lucide-react": "^0.454.0",
     "next": "15.0.2",
+    "next-auth": "^5.0.0-beta.25",
     "next-themes": "^0.3.0",
     "react": "19.0.0-rc-02c0e824-20241028",
     "react-day-picker": "^8.10.1",
