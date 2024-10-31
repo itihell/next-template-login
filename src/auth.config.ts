@@ -64,23 +64,8 @@ export const authConfig: NextAuthConfig = {
   },
 
   providers: [
-    {
-      id: "oauth",
-      name: "oauth",
-      type: "oauth",
-      clientId: process.env.AUTH0_CLIENT_ID,
-      clientSecret: process.env.AUTH0_CLIENT_SECRET,
-      authorization: `${process.env.BASE_URL}${process.env.AUTH0_AUTHORIZE_URL}`,
-      issuer: `${process.env.BASE_URL}${process.env.AUTH0_AUTHORIZE_URL}`,
-      token: `${process.env.BASE_URL}${process.env.AUTH0_ACCESS_TOKEN_URL}`,
-      userinfo: `${process.env.BASE_URL}${process.env.AUTH0_USERINFO_URL}`,
-      profile: (profile) => {
-        return profile;
-      },
-    },
     Credentials({
       async authorize(credentials, req) {
-        
         const url = `${process.env.BASE_URL}${process.env.AUTH0_ACCESS_TOKEN_URL}`;
         credentials.grant_type = "password";
         credentials.client_id = process.env.AUTH0_CLIENT_ID;
