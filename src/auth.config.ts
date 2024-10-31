@@ -1,87 +1,91 @@
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import { cookies } from "next/headers";
-import Credentials from "next-auth/providers/credentials";
-import { getPerfilUser } from "./actions";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { LoginData } from "./interfaces";
 export const authConfig: NextAuthConfig = {
   pages: {
     signIn: "/auth/login",
   },
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
-      const locaToken = (user as { access_token: string }).access_token;
-      if (locaToken) return true;
-      return false;
-    },
-    async session({ session, token, user }) {
+    // async signIn({ user }) {
+    //   const locaToken = (user as { token: string }).token;
+    //   if (locaToken) return true;
+    //   return false;
+    // },
+    async session({ session, token }) {
+      console.log("session", { session, token });
       if (token.accessToken) {
-        session.user = token.data as any;
-        session.sessionToken = token.accessToken as any;
+        // session.user = token.data;
+        // session.sessionToken = token.accessToken;
+        // session.user.accessToken = token.accessToken;
+        session.sessionToken = token.accessToken as string;
       }
 
       return session;
     },
-    async jwt({ token, user, account, profile, isNewUser }) {
-      const cookieStore = cookies();
+    async jwt({ token, user }) {
+      const cookieStore = await cookies();
 
       if (user) {
-        const locaToken = (user as { access_token: string }).access_token;
+        const { id, name, email, roles, permissions, accessToken } = user;
 
-        const { id, name, email, url_foto, activo, roles, changepass } =
-          await getPerfilUser(locaToken);
+        console.log(user.accessToken);
 
-        token.accessToken = locaToken;
+        token.accessToken = accessToken;
+        token.sessionToken = accessToken;
         token.email = email;
         token.name = name;
-        token.picture = url_foto;
         token.data = {
           id,
           name,
           email,
-          url_foto,
-          activo,
           roles,
-          changepass,
+          permissions,
         };
 
-        cookieStore.set("authjs.local-token", locaToken, {
-          maxAge: 30 * 24 * 60 * 60, // 30 días
+        cookieStore.set("authjs.local-token", accessToken, {
+          maxAge: 8 * 60 * 60 * 1000, // 8 horas
         });
       }
       return token;
     },
-    async authorized({ auth, request: { nextUrl } }) {
-      try {
-        const isLoggedIn = !!auth?.user;
+    // async authorized({ auth, request: { nextUrl } }) {
+    //   try {
+    //     console.log("authorized");
 
-        const isOnDashboard = nextUrl.pathname.startsWith("/checkout");
+    //     const isLoggedIn = !!auth?.user;
 
-        if (isLoggedIn) return true;
-        return false;
-      } catch (error) {
-        console.error("autorized", { error });
-      }
-    },
+    //     const isOnDashboard = nextUrl.pathname.startsWith("/checkout");
+
+    //     if (isLoggedIn) return true;
+    //     return false;
+    //   } catch (error) {
+    //     console.error("autorized", { error });
+    //   }
+    // },
   },
 
   providers: [
-    Credentials({
-      async authorize(credentials, req) {
+    CredentialsProvider({
+      async authorize(credentials) {
+        const { callbackUrl, ...body } = credentials;
+
         const url = `${process.env.BASE_URL}${process.env.AUTH0_ACCESS_TOKEN_URL}`;
-        credentials.grant_type = "password";
-        credentials.client_id = process.env.AUTH0_CLIENT_ID;
-        credentials.client_secret = process.env.AUTH0_CLIENT_SECRET;
+        // credentials.grant_type = "password";
+        // credentials.client_id = process.env.AUTH0_CLIENT_ID;
+        // credentials.client_secret = process.env.AUTH0_CLIENT_SECRET;
 
         const res = await fetch(url, {
           method: "POST",
-          body: JSON.stringify(credentials),
+          body: JSON.stringify(body),
           headers: {
             "Content-Type": "application/json",
           },
         });
 
-        const data = await res.json();
+        const data = (await res.json()) as LoginData;
 
-        if (data.access_token) {
+        if (data.accessToken) {
           return data;
         } else {
           return null;

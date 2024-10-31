@@ -1,19 +1,15 @@
 "use server";
+import { z } from "zod";
 import { signIn } from "@/auth.config";
-import { getData } from "@/utils";
 
 import { AuthError } from "next-auth";
+import { formSchemaLogin } from "@/schemas";
 
-export async function loginFormData(
-  prevState: string | undefined,
-  formData: FormData
-) {
+//export async function createLogin(payload: FormData) {
+export async function createLogin(payload: z.infer<typeof formSchemaLogin>) {
   try {
     //const a = await signIn("oauth", {
-    await signIn("credentials", {
-      ...Object.fromEntries(formData),
-      redirect: false,
-    });
+    await signIn("credentials", { ...payload });
 
     //console.error({ a });
 
