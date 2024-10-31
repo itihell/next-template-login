@@ -7,7 +7,6 @@ export const config = {
   // https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
   // "/((?!api|_next/static|_next/image|.*\\.png$).*)"
   matcher: [
-    "/",
     "/checkout/:path*",
     "/orders/:path*",
     "/products/:path*",
