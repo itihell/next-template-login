@@ -1,24 +1,24 @@
 import { DashboardSiderBar } from "@/components/dashboard";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui";
+import { SidebarProvider } from "@/components/ui";
 import { Metadata } from "next";
+import { cookies } from "next/headers";
 
 export const metadata: Metadata = {
   title: "Panel Administrativo",
   description: "Panel administrativo de la aplicación",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const defaultOpen = cookieStore.get("sidebar:state")?.value === "true";
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={defaultOpen}>
       <DashboardSiderBar />
-      <main>
-        <SidebarTrigger />
-        {children}
-      </main>
+      <main className="w-full">{children}</main>
     </SidebarProvider>
   );
 }

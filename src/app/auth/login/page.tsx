@@ -1,6 +1,12 @@
+import { auth } from "@/auth.config";
 import { FormLogin } from "@/components";
 
-export default function LoginPage() {
+import { redirect } from "next/navigation";
+
+export default async function LoginPage() {
+  const session = await auth();
+  if (session) redirect("/dashboard");
+
   return (
     <main className="flex items-center justify-center h-screen ">
       <div className="relative mx-auto flex w-full max-w-[400px] flex-col p-4 md:-mt-32">
