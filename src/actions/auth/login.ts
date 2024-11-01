@@ -6,10 +6,17 @@ import { AuthError } from "next-auth";
 import { formSchemaLogin } from "@/schemas";
 
 //export async function createLogin(payload: FormData) {
-export async function createLogin(payload: z.infer<typeof formSchemaLogin>) {
+export async function createLogin(
+  payload: z.infer<typeof formSchemaLogin>,
+  callbackUrl: string
+) {
   try {
     //const a = await signIn("oauth", {
-    await signIn("credentials", { ...payload });
+    await signIn("credentials", {
+      ...payload,
+      redirectTo: callbackUrl,
+      redirect: true,
+    });
 
     //console.error({ a });
 

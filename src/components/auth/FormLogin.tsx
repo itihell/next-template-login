@@ -16,8 +16,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { createLogin } from "@/actions";
+import { useSearchParams } from "next/navigation";
 
 export const FormLogin = () => {
+  const searchParams = useSearchParams();
+  const arrayPath = searchParams.get("callbackUrl")?.split("/");
+  arrayPath?.splice(0, 3);
+  const callbackUrl = "/" + arrayPath?.join("/");
+
+  console.log({ callbackUrl });
+
   const form = useForm<z.infer<typeof formSchemaLogin>>({
     resolver: zodResolver(formSchemaLogin),
     defaultValues: {
@@ -27,7 +35,7 @@ export const FormLogin = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchemaLogin>) => {
-    createLogin(values);
+    createLogin(values, callbackUrl);
   };
   return (
     <Form {...form}>

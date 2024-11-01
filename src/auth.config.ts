@@ -1,23 +1,25 @@
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import { cookies } from "next/headers";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { LoginData } from "./interfaces";
+import { CustomUserAdapter } from "./interfaces";
+
+import jwt from "jsonwebtoken";
+
 export const authConfig: NextAuthConfig = {
   pages: {
     signIn: "/auth/login",
   },
   callbacks: {
-    // async signIn({ user }) {
-    //   const locaToken = (user as { token: string }).token;
-    //   if (locaToken) return true;
-    //   return false;
-    // },
+    async signIn({ user }) {
+      if (user.accessToken) return true;
+      return false;
+    },
     async session({ session, token }) {
-      console.log("session", { session, token });
       if (token.accessToken) {
-        // session.user = token.data;
-        // session.sessionToken = token.accessToken;
-        // session.user.accessToken = token.accessToken;
+        const adapaterUser = token.data as CustomUserAdapter;
+        session.user = {
+          ...adapaterUser,
+        };
         session.sessionToken = token.accessToken as string;
       }
 
@@ -27,14 +29,19 @@ export const authConfig: NextAuthConfig = {
       const cookieStore = await cookies();
 
       if (user) {
+        const { exp, iat } = jwt.decode(user.accessToken) as {
+          exp: number;
+          iat: number;
+        };
         const { id, name, email, roles, permissions, accessToken } = user;
 
-        console.log(user.accessToken);
+        token.iat = iat;
+        token.exp = exp;
 
         token.accessToken = accessToken;
-        token.sessionToken = accessToken;
         token.email = email;
         token.name = name;
+        token.id = id;
         token.data = {
           id,
           name,
@@ -42,27 +49,19 @@ export const authConfig: NextAuthConfig = {
           roles,
           permissions,
         };
-
+        const expires = new Date(exp * 1000).toLocaleDateString();
         cookieStore.set("authjs.local-token", accessToken, {
-          maxAge: 8 * 60 * 60 * 1000, // 8 horas
+          maxAge: 4 * 60 * 60, // 4 horas en segundos,
+          expires: new Date(expires),
         });
+
+        return token;
       }
       return token;
     },
-    // async authorized({ auth, request: { nextUrl } }) {
-    //   try {
-    //     console.log("authorized");
-
-    //     const isLoggedIn = !!auth?.user;
-
-    //     const isOnDashboard = nextUrl.pathname.startsWith("/checkout");
-
-    //     if (isLoggedIn) return true;
-    //     return false;
-    //   } catch (error) {
-    //     console.error("autorized", { error });
-    //   }
-    // },
+    authorized: async ({ auth, request: { nextUrl } }) => {
+      return !!auth?.user;
+    },
   },
 
   providers: [
@@ -71,9 +70,6 @@ export const authConfig: NextAuthConfig = {
         const { callbackUrl, ...body } = credentials;
 
         const url = `${process.env.BASE_URL}${process.env.AUTH0_ACCESS_TOKEN_URL}`;
-        // credentials.grant_type = "password";
-        // credentials.client_id = process.env.AUTH0_CLIENT_ID;
-        // credentials.client_secret = process.env.AUTH0_CLIENT_SECRET;
 
         const res = await fetch(url, {
           method: "POST",
@@ -83,10 +79,15 @@ export const authConfig: NextAuthConfig = {
           },
         });
 
-        const data = (await res.json()) as LoginData;
+        const user = (await res.json()) as CustomUserAdapter;
 
-        if (data.accessToken) {
-          return data;
+        if (user.accessToken) {
+          return {
+            ...user,
+            emailVerified: user.emailVerified
+              ? new Date(user.emailVerified)
+              : null,
+          } as CustomUserAdapter;
         } else {
           return null;
         }
@@ -95,7 +96,7 @@ export const authConfig: NextAuthConfig = {
   ],
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 días
+    maxAge: 4 * 60 * 60, // 4 horas
   },
 };
 

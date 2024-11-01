@@ -1,11 +1,17 @@
 export interface LoginData {
   id: string;
   email: string;
-  fullName: string;
+  name: string;
   password: string;
   roles: Role[];
   permissions: Permission[];
   accessToken: string;
+}
+
+export interface CustomUserAdapter extends LoginData {
+  emailVerified: Date & null & string & undefined;
+  role: string;
+  image?: string;
 }
 
 export interface Role {
