@@ -79,18 +79,8 @@ export const FormLogin = () => {
             )}
           />
           <div className="">
-            <div className="grid grid-cols-2 justify-end mt-6">
-              <Button
-                type="button"
-                className={`${styles.btnLogin} rounded-r-none`}
-                onClick={() => hundlerToHome}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                className={`${styles.btnLogin} rounded-l-none`}
-              >
+            <div className="grid space-x-0 mt-6">
+              <Button type="submit" className={`${styles.btnLogin}`}>
                 Entrar
               </Button>
             </div>
