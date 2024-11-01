@@ -14,15 +14,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { createLogin } from "@/actions";
-import { useRouter, useSearchParams } from "next/navigation";
+import { redirect, useRouter, useSearchParams } from "next/navigation";
 import styles from "./form-login.module.css";
+import { useSession } from "next-auth/react";
 
 export const FormLogin = () => {
+  const { data: session } = useSession();
+  if (session) redirect("/dashboard");
   const router = useRouter();
   const searchParams = useSearchParams();
   const arrayPath = searchParams.get("callbackUrl")?.split("/");
+
   arrayPath?.splice(0, 3);
-  const callbackUrl = "/" + arrayPath?.join("/");
+  const callbackUrl = arrayPath ? "/" + arrayPath?.join("/") : "/dashboard";
 
   const form = useForm<z.infer<typeof formSchemaLogin>>({
     resolver: zodResolver(formSchemaLogin),
@@ -43,7 +47,9 @@ export const FormLogin = () => {
     <div className="m-5">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
-          <p className="text-center text-xl text-gray-700">Ingrese su email y contraseña</p>
+          <p className="text-center text-xl text-gray-700">
+            Ingrese su email y contraseña
+          </p>
           <FormField
             control={form.control}
             name="email"
