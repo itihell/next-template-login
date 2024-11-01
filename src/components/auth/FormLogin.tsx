@@ -14,14 +14,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { createLogin } from "@/actions";
-import { redirect, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import styles from "./form-login.module.css";
-import { useSession } from "next-auth/react";
 
 export const FormLogin = () => {
-  const { data: session } = useSession();
-  if (session) redirect("/dashboard");
-  const router = useRouter();
   const searchParams = useSearchParams();
   const arrayPath = searchParams.get("callbackUrl")?.split("/");
 
@@ -40,9 +36,6 @@ export const FormLogin = () => {
     createLogin(values, callbackUrl);
   };
 
-  const hundlerToHome = () => {
-    router.push("/");
-  };
   return (
     <div className="m-5">
       <Form {...form}>
