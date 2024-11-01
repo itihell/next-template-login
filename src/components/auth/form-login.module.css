@@ -1,0 +1,3 @@
+.btnLogin {
+  @apply bg-gradient-to-t from-zinc-700 to-zinc-400 text-white hover:from-zinc-600 hover:to-zinc-300;
+}
