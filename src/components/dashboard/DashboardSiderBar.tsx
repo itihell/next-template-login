@@ -34,7 +34,9 @@ import {
   User2,
 } from "lucide-react";
 import { logout } from "@/actions";
-import { redirect } from "next/navigation";
+import { useEffect, useState } from "react";
+import { CustomUserAdapter } from "@/interfaces";
+import { useRouter } from "next/navigation";
 const items = [
   {
     title: "Home",
@@ -63,11 +65,36 @@ const items = [
   },
 ];
 export const DashboardSiderBar = () => {
-  const { data: session } = useSession();
+  const [user, setUser] = useState<CustomUserAdapter>({} as CustomUserAdapter);
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
   const handleSingOut = async () => {
     await logout();
-    redirect("/");
+    router.push("/");
   };
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      setUser(session.user as CustomUserAdapter);
+    } else {
+      (() => {
+        const url = "/api/auth/session";
+        fetch(url)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data?.user) {
+              setUser(data.user as CustomUserAdapter);
+            }
+          });
+      })();
+    }
+  }, [status, session]);
+
+  if (status === "loading") {
+    return <p>Loading...</p>;
+  }
+
   return (
     <Sidebar
       side="left"
@@ -160,7 +187,7 @@ export const DashboardSiderBar = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
-                  <User2 /> {session?.user?.name}
+                  <User2 /> {user.name}
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
